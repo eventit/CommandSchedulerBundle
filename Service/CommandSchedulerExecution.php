@@ -8,6 +8,7 @@ use Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand;
 use Dukecity\CommandSchedulerBundle\Event\SchedulerCommandPostExecutionEvent;
 use Dukecity\CommandSchedulerBundle\Event\SchedulerCommandPreExecutionEvent;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Bridge\Doctrine\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\StringInput;
@@ -132,6 +133,10 @@ class CommandSchedulerExecution
     {
         $command = $this->prepareCommandExecution($scheduledCommand);
 
+        if (null === $command) {
+            return -1;
+        }
+
         $input = $this->getInputCommand($scheduledCommand, $command, $this->env);
 
         $logOutput = $this->getLog($scheduledCommand, $commandsVerbosity);
@@ -167,7 +172,7 @@ class CommandSchedulerExecution
     }
 
 
-    private function prepareExecution(ScheduledCommand $scheduledCommand): void
+    private function prepareExecution(ScheduledCommand $scheduledCommand): bool
     {
         //reload command from database before every execution to avoid parallel execution
         $this->em->getConnection()->beginTransaction();
@@ -189,6 +194,8 @@ class CommandSchedulerExecution
             $this->em->persist($scheduledCommand);
             $this->em->flush();
             $this->em->getConnection()->commit();
+
+            return true;
         } catch (\Throwable $e) {
             $this->em->getConnection()->rollBack();
             /*$this->output->writeln(
@@ -199,7 +206,7 @@ class CommandSchedulerExecution
                 )
             );*/
 
-            return;
+            return false;
         }
     }
 
@@ -209,7 +216,9 @@ class CommandSchedulerExecution
         string $commandsVerbosity = OutputInterface::VERBOSITY_NORMAL): int
     {
         $this->env = $env;
-        $this->prepareExecution($scheduledCommand);
+        if (!$this->prepareExecution($scheduledCommand)) {
+            throw new RuntimeException(sprintf('Command %s already locked', $scheduledCommand->getName()));
+        }
 
         /** @var ScheduledCommand $scheduledCommand */
         $scheduledCommand = $this->em->find(ScheduledCommand::class, $scheduledCommand);
