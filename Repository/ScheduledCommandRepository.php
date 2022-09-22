@@ -143,7 +143,7 @@ class ScheduledCommandRepository extends EntityRepository
             } else {
                 $cron = new CronExpression($command->getCronExpression());
                 try {
-                    $nextRunDate = $cron->getNextRunDate($command->getLastExecution());
+                    $nextRunDate = $cron->getNextRunDate($command->getLastExecution() ?? $command->createdAt());
 
                     if ($nextRunDate < $now) {
                         $commands[] = $command;
