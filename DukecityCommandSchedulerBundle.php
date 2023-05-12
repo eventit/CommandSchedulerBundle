@@ -25,7 +25,6 @@ class DukecityCommandSchedulerBundle extends Bundle
             $directories = [realpath(__DIR__.'/Entity')];
             $managerParameters = [];
             $enabledParameter = false;
-            $aliasMap = ['CommandSchedulerBundle' => 'Dukecity\CommandSchedulerBundle\Entity'];
 
             $driver = new Definition(AttributeDriver::class, [$directories]);
 
@@ -35,7 +34,6 @@ class DukecityCommandSchedulerBundle extends Bundle
                     $namespaces,
                     $managerParameters,
                     $enabledParameter,
-                    $aliasMap
                 )
             );
 
