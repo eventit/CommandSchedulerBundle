@@ -39,7 +39,7 @@
         "symfony/http-kernel": "^5.4 || ^6.0",
         "symfony/routing": "^5.4 || ^6.0",
         "symfony/yaml": "^5.4 || ^6.0",
-        "twig/twig": "^3.4",
+        "twig/twig": "^v3.14",
         "lorisleiva/cron-translator": "^0.4.0"
     },
     "require-dev": {
